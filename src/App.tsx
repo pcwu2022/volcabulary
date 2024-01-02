@@ -1,18 +1,38 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, createContext } from 'react';
 import './App.css';
 import Login from './components/Login';
+import { Box, createTheme, ThemeProvider } from '@mui/material';
+import { ContextData, UserData } from './types/types';
 
 function App() {
   const [login, setLogin] = useState<boolean>(false);
+  const [username, setUsername] = useState<string>("");
+  const theme = createTheme({
+    palette: {
+      mode: "dark",
+
+    }
+  });
 
   return (
-    <div className="App">
-      {
-        (!login)?<Login />
-        :<>
-          <div></div>
-        </>
-      }
+    <div className="App m-0 p-0 w-full h-screen">
+      <ThemeProvider theme={theme}>
+        <div
+          className='w-full h-screen flex items-center justify-center'
+          style={{
+            backgroundColor: theme.palette.background.default
+          }}
+        >  
+          {
+            (!login)?<Login
+              username={username} setUsername={setUsername} setLogin={setLogin}
+            />
+            :<>
+              <div></div>
+            </>
+          }
+        </div>
+      </ThemeProvider>
     </div>
   );
 }
