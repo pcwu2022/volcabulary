@@ -3,6 +3,7 @@ import './App.css';
 import Login from './components/Login';
 import { Box, createTheme, ThemeProvider } from '@mui/material';
 import { ContextData, UserData } from './types/types';
+import Main from './components/Main';
 
 function App() {
   const [login, setLogin] = useState<boolean>(false);
@@ -28,7 +29,9 @@ function App() {
               username={username} setUsername={setUsername} setLogin={setLogin}
             />
             :<>
-              <div></div>
+              <Main 
+                
+              />
             </>
           }
         </div>

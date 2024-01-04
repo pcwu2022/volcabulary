@@ -1,5 +1,8 @@
 import axios from "axios";
 import { UserData, UserDataIndex } from "../types/types";
+import wordbase from "../database/wordbase.json";
+
+const database = "https://pcwu-service.onrender.com";
 
 let globalUsername = "";
 let userData: UserData = {
@@ -15,12 +18,9 @@ let userData: UserData = {
     count: 0
 };
 
-// database
-let words: Array<Array<string>> = [];
-
 const dataInit = (username: string): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-        axios.get(`https://db.pcwu2022.repl.co/volcabulary/${username}`)
+        axios.get(`${database}/volcabulary/${username}`)
             .then((res) => {
                 if (res.data.data === null){
                     resolve(false); // no user present
@@ -41,25 +41,13 @@ const dataInit = (username: string): Promise<boolean> => {
 const createUser = (username: string) => {
     let newUser = userData;
     globalUsername = username;
-    axios.post(`https://db.pcwu2022.repl.co/volcabulary/${username}`, newUser)
+    axios.post(`${database}/volcabulary/${username}`, newUser)
         .catch((err) => console.error(err));
 }
 
 const saveUser = () => {
-    axios.post(`https://db.pcwu2022.repl.co/volcabulary/${globalUsername}`, userData)
+    axios.post(`${database}/volcabulary/${globalUsername}`, userData)
         .catch((err) => console.error(err));
-}
-
-const loadWords = () => {
-    for (let level = 1; level <= 12; level++){
-        axios.get(`https://db.pcwu2022.repl.co/volcabulary/${level}`)
-            .then((response) => {
-                words[level] = response.data.data;
-            })
-            .catch((err) => {
-                console.error(err)
-            });
-    }
 }
 
 const stableProb = 0.1;
@@ -161,7 +149,7 @@ const getRandomWord = (): [string ,number | UserDataIndex] => { // get random wo
         // pick a random word
         let word = "";
         do {
-            word = randomSelect(words[level]);
+            word = randomSelect(wordbase[(level + "") as keyof typeof wordbase]);
         } while (inData(word));
 
         return [word, level];
@@ -171,7 +159,6 @@ const getRandomWord = (): [string ,number | UserDataIndex] => { // get random wo
 export {
     dataInit,
     createUser,
-    loadWords,
     getRandomWord,
     saveUser
 }
