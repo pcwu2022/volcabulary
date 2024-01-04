@@ -24,6 +24,7 @@ const dataInit = (username: string): Promise<boolean> => {
             .then((res) => {
                 if (res.data.data === null){
                     resolve(false); // no user present
+                    console.log("no user present");
                 } else {
                     userData = res.data.data;
                     globalUsername = username;
@@ -70,17 +71,17 @@ const reviewProb = () => {
 }
 
 // check if the word is inside userData
-const inData = (word: string): boolean => {
+const inData = (word: string): [boolean, string | null] => {
     for (let key in userData){
         let searchArray = userData[key as keyof UserData];
-        if (typeof searchArray != "number"){
-            if (searchArray.indexOf(word) != -1){
+        if (typeof searchArray !== "number"){
+            if (searchArray.indexOf(word) !== -1){
                 // found word in searchArray
-                return true;
+                return [true, key];
             }
         }
     }
-    return false;
+    return [false, null];
 }
 
 const randomSelect = (array: Array<any>): any => {
@@ -150,15 +151,113 @@ const getRandomWord = (): [string ,number | UserDataIndex] => { // get random wo
         let word = "";
         do {
             word = randomSelect(wordbase[(level + "") as keyof typeof wordbase]);
-        } while (inData(word));
+        } while (inData(word)[0]);
 
         return [word, level];
     }
+}
+
+// extract word from userData
+const extract = (word: string) => {
+    const [isInData, key] = inData(word);
+    if (!isInData){
+        return;
+    }
+    let searchArray = userData[key as keyof UserData];
+    if (typeof searchArray === "number"){
+        return;
+    }
+    let index = searchArray.indexOf(word);
+    if (index !== -1){
+        searchArray.splice(index, 1);
+    }
+}
+
+// user interface actions
+const saveWord = (word: string, level: number | UserDataIndex) => {
+    extract(word);
+    userData.learning1.push(word);
+
+    // algorithm: subtract a level to the user
+    if (typeof level === "number" && level < userData.level){
+        userData.level -= step()*(userData.level - level);
+        // boundary conditions
+        if (userData.level < 1){
+            userData.level = 1;
+        } else if (userData.level > levelLimit){
+            userData.level = levelLimit;
+        }
+    }
+
+    userData.count += 1;
+    saveUser();
+}
+
+const discardWord = (word: string, level: number | UserDataIndex) => {
+    extract(word);
+    userData.discarded.push(word);
+    saveUser();
+}
+
+const checkWord = (word: string, level: number | UserDataIndex) => {
+    extract(word);
+    userData.known.push(word);
+    
+    // algorithm: add a level to the user
+    if (typeof level === "number" && level > userData.level){
+        userData.level += step()*(level - userData.level);
+        // boundary conditions
+        if (userData.level < 1){
+            userData.level = 1;
+        } else if (userData.level > levelLimit){
+            userData.level = levelLimit;
+        }
+    }
+
+    userData.count += 1;
+    saveUser();
+}
+
+const rememberWord = (word: string, level: number | UserDataIndex) => {
+    extract(word);
+    if (level === UserDataIndex.learning1){
+        userData.learning2.push(word);
+    } else if (level === UserDataIndex.learning2){
+        userData.learning3.push(word);
+    } else if (level === UserDataIndex.learning3){
+        userData.learning4.push(word);
+    } else if (level === UserDataIndex.learning4){
+        userData.learning5.push(word);
+    } else if (level === UserDataIndex.learning5){
+        userData.learnt.push(word);
+    }
+    saveUser();
+}
+
+const forgetWord = (word: string, level: number | UserDataIndex) => {
+    extract(word);
+    if (level === UserDataIndex.learning1){
+        userData.learning1.push(word);
+    } else if (level === UserDataIndex.learning2){
+        userData.learning1.push(word);
+    } else if (level === UserDataIndex.learning3){
+        userData.learning2.push(word);
+    } else if (level === UserDataIndex.learning4){
+        userData.learning2.push(word);
+    } else if (level === UserDataIndex.learning5){
+        userData.learning2.push(word);
+    }
+    saveUser();
 }
 
 export {
     dataInit,
     createUser,
     getRandomWord,
-    saveUser
+    saveUser,
+    saveWord,
+    discardWord,
+    checkWord,
+    rememberWord,
+    forgetWord
 }

@@ -5,9 +5,26 @@ import { getRandomWord } from '../api/axios';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import HelpIcon from '@mui/icons-material/Help';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { DictionaryData, UserDataIndex } from '../types/types';
 
-const Flashcard = () => {
+type FlashCardProps = {
+  word: string,
+  level: number | UserDataIndex,
+  data: DictionaryData,
+  onSave: (word: string, level: number | UserDataIndex) => void,
+  onDiscard: (word: string, level: number | UserDataIndex) => void,
+  onCheck: (word: string, level: number | UserDataIndex) => void,
+  onRemember: (word: string, level: number | UserDataIndex) => void,
+  onForget: (word: string, level: number | UserDataIndex) => void
+}
+
+const Flashcard = ({
+  word, level, data, onSave, onDiscard, onCheck, onRemember, onForget
+}: FlashCardProps) => {
+  const isSaved = (typeof level !== "number")
   const [flip, setFlip] = useState<boolean>(false);
   return (
     <>
@@ -36,26 +53,65 @@ const Flashcard = () => {
           <CardActions>
             <Box sx={{display: 'relative', width: "100%"}}>
               <Box sx={{float: "left"}}>
-                <Tooltip title={"I don't want to see it again"}>
-                  <IconButton>
+                <Tooltip title={"I don't want to see it again."}>
+                  <IconButton
+                    onClick={() => {
+                      onDiscard(word, level);
+                    }}
+                  >
                     <DeleteIcon />
                   </IconButton>
                 </Tooltip>
               </Box>
-              <Box sx={{float: "right"}}>
-                <Tooltip title={"I know this word!"}>
-                  <IconButton>
-                    <CheckCircleIcon />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-              <Box sx={{float: "right"}}>
-                <Tooltip title={"I want to learn it"}>
-                  <IconButton>
-                    <BookmarkIcon />
-                  </IconButton>
-                </Tooltip>
-              </Box>
+              {isSaved?
+              <>
+                <Box sx={{float: "right"}}>
+                  <Tooltip title={"I remember!"}>
+                    <IconButton
+                      onClick={() => {
+                        onRemember(word, level);
+                      }}
+                    >
+                      <LightbulbIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <Box sx={{float: "right"}}>
+                  <Tooltip title={"I forgot..."}>
+                    <IconButton
+                      onClick={() => {
+                        onForget(word, level);
+                      }}
+                    >
+                      <HelpIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </>:
+              <>
+                <Box sx={{float: "right"}}>
+                  <Tooltip title={"I know this word!"}>
+                    <IconButton
+                      onClick={() => {
+                        onCheck(word, level);
+                      }}
+                    >
+                      <CheckCircleIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <Box sx={{float: "right"}}>
+                  <Tooltip title={"New word! Save it!"}>
+                    <IconButton
+                      onClick={() => {
+                        onSave(word, level);
+                      }}
+                    >
+                      <BookmarkIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </>}
             </Box>
 
           </CardActions>

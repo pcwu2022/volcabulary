@@ -22,6 +22,10 @@ export enum UserDataIndex {
     discarded = "dc"
 }
 
+export type DictionaryData = {
+    
+}
+
 export type ContextData = {
 
 }
