@@ -22,9 +22,12 @@ export enum UserDataIndex {
     discarded = "dc"
 }
 
-export type DictionaryData = {
-    
-}
+export type Meanings = {
+    partOfSpeech: string,
+    definitions: Array<string>
+};
+
+export type DictionaryData = Array<Meanings>;
 
 export type ContextData = {
 

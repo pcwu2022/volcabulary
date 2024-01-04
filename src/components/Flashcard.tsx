@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactCardFlip from 'react-card-flip';
 import { Card, Button, CardActions, CardContent, Typography, Box, IconButton, Tooltip } from '@mui/material';
 import { getRandomWord } from '../api/axios';
@@ -9,6 +9,7 @@ import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import HelpIcon from '@mui/icons-material/Help';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { DictionaryData, UserDataIndex } from '../types/types';
+import { ThemeContext } from '@emotion/react';
 
 type FlashCardProps = {
   word: string,
@@ -18,35 +19,54 @@ type FlashCardProps = {
   onDiscard: (word: string, level: number | UserDataIndex) => void,
   onCheck: (word: string, level: number | UserDataIndex) => void,
   onRemember: (word: string, level: number | UserDataIndex) => void,
-  onForget: (word: string, level: number | UserDataIndex) => void
+  onForget: (word: string, level: number | UserDataIndex) => void,
+  update: boolean // dummy variable for update
 }
 
 const Flashcard = ({
-  word, level, data, onSave, onDiscard, onCheck, onRemember, onForget
+  word, level, data, onSave, onDiscard, onCheck, onRemember, onForget, update
 }: FlashCardProps) => {
   const isSaved = (typeof level !== "number")
   const [flip, setFlip] = useState<boolean>(false);
+  const [saved, setSaved] = useState<boolean>(false);
+  const [discarded, setDiscarded] = useState<boolean>(false);
+  const [checked, setChecked] = useState<boolean>(false);
+  const [remembered, setRemembered] = useState<boolean>(false);
+  const [forgetted, setForgetted] = useState<boolean>(false);
+
+  useEffect(() => {
+    setSaved(false);
+    setDiscarded(false);
+    setChecked(false);
+    setRemembered(false);
+    setForgetted(false);
+  }, [update]);
+
   return (
     <>
+    <div id={(update)?"dummy":"dummy2"}></div>
       <ReactCardFlip
         isFlipped={flip}
         flipDirection='vertical'
       >
         <Card 
           sx={{ 
-            minWidth: 275,
-            minHeight: 300
+            width: 275,
+            height: 300,
+            // borderWidth: 3,
+            // borderWidth: (discarded||saved||checked||remembered||forgetted)?3:0,
+            // borderColor: (discarded?"red":saved?"yellow":checked?"green":"black")
           }}
         >
           <CardContent>
             <div 
-              className='h-64 flex items-center justify-center cursor-pointer'
+              className='h-52 flex items-center justify-center cursor-pointer'
               onClick={(e) => {
                 setFlip(true);
               }}
             >
               <Typography variant="h5" component="div">
-                {getRandomWord()[0]}
+                {word}
               </Typography>
             </div>
           </CardContent>
@@ -56,10 +76,11 @@ const Flashcard = ({
                 <Tooltip title={"I don't want to see it again."}>
                   <IconButton
                     onClick={() => {
+                      setDiscarded(true);
                       onDiscard(word, level);
                     }}
                   >
-                    <DeleteIcon />
+                    <DeleteIcon style={{fill: ((discarded)?"red":"white")}} />
                   </IconButton>
                 </Tooltip>
               </Box>
@@ -69,10 +90,11 @@ const Flashcard = ({
                   <Tooltip title={"I remember!"}>
                     <IconButton
                       onClick={() => {
+                        setRemembered(true);
                         onRemember(word, level);
                       }}
                     >
-                      <LightbulbIcon />
+                      <LightbulbIcon style={{fill: ((remembered)?"cyan":"white")}} />
                     </IconButton>
                   </Tooltip>
                 </Box>
@@ -80,10 +102,11 @@ const Flashcard = ({
                   <Tooltip title={"I forgot..."}>
                     <IconButton
                       onClick={() => {
+                        setForgetted(true);
                         onForget(word, level);
                       }}
                     >
-                      <HelpIcon />
+                      <HelpIcon style={{fill: ((forgetted)?"orange":"white")}} />
                     </IconButton>
                   </Tooltip>
                 </Box>
@@ -93,10 +116,11 @@ const Flashcard = ({
                   <Tooltip title={"I know this word!"}>
                     <IconButton
                       onClick={() => {
+                        setChecked(true);
                         onCheck(word, level);
                       }}
                     >
-                      <CheckCircleIcon />
+                      <CheckCircleIcon style={{fill: ((checked)?"green":"white")}} />
                     </IconButton>
                   </Tooltip>
                 </Box>
@@ -104,10 +128,11 @@ const Flashcard = ({
                   <Tooltip title={"New word! Save it!"}>
                     <IconButton
                       onClick={() => {
+                        setSaved(true);
                         onSave(word, level);
                       }}
                     >
-                      <BookmarkIcon />
+                      <BookmarkIcon style={{fill: ((saved)?"yellow":"white")}} />
                     </IconButton>
                   </Tooltip>
                 </Box>
@@ -118,8 +143,8 @@ const Flashcard = ({
         </Card>
         <Card 
           sx={{ 
-            minWidth: 275,
-            minHeight: 300,
+            width: 275,
+            height: 300,
             cursor: "pointer"
           }}
           onClick={(e) => {
@@ -127,18 +152,31 @@ const Flashcard = ({
           }}
         >
           <CardContent>
-            <Typography variant="h5" component="div">
-              Word
-            </Typography>
-            <Typography sx={{ mb: 1.5 }} color="text.secondary">
-              adjective
-            </Typography>
-            <Typography variant="body2">
-              meaning
-            </Typography>
-            <Typography variant="body2">
-              example
-            </Typography>
+            <div className='w-full max-h-64 no-scrollbar overflow-auto'>
+              <Typography variant="h5" component="div">
+                {word}
+              </Typography>
+              {
+                data.map((meaning) => (<div key={Math.random()}>
+                  <Typography sx={{ mt: 1.5 }} color="text.secondary">
+                    {meaning.partOfSpeech}
+                  </Typography>
+                  <div>
+                    <ul className='m-2 ml-4 list-disc'>
+                      {
+                        meaning.definitions.map((definition) => (
+                          <li key={Math.random()} >
+                            <Typography variant="body2">
+                              {definition}
+                            </Typography>
+                          </li>
+                        ))
+                      }
+                    </ul>
+                  </div>
+                </div>))
+              }
+            </div>
           </CardContent>
         </Card>
       </ReactCardFlip>
